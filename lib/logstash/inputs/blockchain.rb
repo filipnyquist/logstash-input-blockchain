@@ -86,10 +86,11 @@ class LogStash::Inputs::Blockchain < LogStash::Inputs::Base
 
     # start at specified block, or latest or genesis one
     current_height = @start_height
-
+    latest_height_added = -1
     # we can abort the loop if stop? becomes true
     while !stop?
       begin
+        if current_height <= @blockchain.get_block_count() && latest_height_added != current_height  # make sure we are not over doing blocks and not doing the same block again..
         # get block and transaction data using the given protocol
         block_data, tx_info, timestamp = @blockchain.get_block(current_height)
 
@@ -120,10 +121,11 @@ class LogStash::Inputs::Blockchain < LogStash::Inputs::Base
         )
       end
 
-      # go to the next block if we are under the max amount of blocks
-      if current_height < @blockchain.get_block_count()
-	current_height += 1
-      end
+      # go to the next block
+      current_height += 1
+
+      end # end block check if
+
       # because the sleep interval can be big, when shutdown happens
       # we want to be able to abort the sleep
       # Stud.stoppable_sleep will frequently evaluate the given block
