@@ -120,9 +120,10 @@ class LogStash::Inputs::Blockchain < LogStash::Inputs::Base
         )
       end
 
-      # go to the next block
-      current_height += 1
-
+      # go to the next block if we are under the max amount of blocks
+      if current_height < @blockchain.get_block_count()
+	current_height += 1
+      end
       # because the sleep interval can be big, when shutdown happens
       # we want to be able to abort the sleep
       # Stud.stoppable_sleep will frequently evaluate the given block
