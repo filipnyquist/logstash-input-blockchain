@@ -86,6 +86,7 @@ class LogStash::Inputs::Blockchain < LogStash::Inputs::Base
 
     # start at specified block, or latest or genesis one
     current_height = @start_height
+    #Latest block done should always be under 0 when not initziated.
     latest_height_added = -1
     # we can abort the loop if stop? becomes true
     while !stop?
@@ -121,7 +122,8 @@ class LogStash::Inputs::Blockchain < LogStash::Inputs::Base
         )
       end
 
-      # go to the next block
+      # add the current block to the latest added one variab and go to the next block
+      latest_height_added = current_height
       current_height += 1
 
       end # end block check if
