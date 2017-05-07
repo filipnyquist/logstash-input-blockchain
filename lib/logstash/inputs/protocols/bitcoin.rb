@@ -36,6 +36,8 @@ class BitcoinProtocol < BlockchainProtocol
       begin
         tx_hash = make_rpc_call("getrawtransaction", txid)
         tx = make_rpc_call("decoderawtransaction", tx_hash)
+	      claims = make_rpc_call("getclaimsfortx", txid) #added claims
+	      tx.store("claims", claims) # added claims
         tx_info << tx
       rescue JSONRPCError, java.lang.Exception => e
         @logger.warn? && @logger.warn('Could not find any information about transaction', :tx => txid)

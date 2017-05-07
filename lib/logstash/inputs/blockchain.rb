@@ -86,12 +86,10 @@ class LogStash::Inputs::Blockchain < LogStash::Inputs::Base
 
     # start at specified block, or latest or genesis one
     current_height = @start_height
-    #Latest block done should always be under 0 when not initziated.
-    latest_height_added = -1
+    @old_data = []
     # we can abort the loop if stop? becomes true
     while !stop?
       begin
-        if current_height <= @blockchain.get_block_count() && latest_height_added != current_height  # make sure we are not over doing blocks and not doing the same block again..
         # get block and transaction data using the given protocol
         block_data, tx_info, timestamp = @blockchain.get_block(current_height)
 
@@ -110,7 +108,7 @@ class LogStash::Inputs::Blockchain < LogStash::Inputs::Base
             }
           else
             block_data['@timestamp'] = timestamp
-            block_data['tx_info'] = tx_info
+            #block_data['tx_info'] = tx_info removed the tx_info as it will be in its custom index(transaction index).
             enqueue(queue, block_data)
         end
 
@@ -122,11 +120,10 @@ class LogStash::Inputs::Blockchain < LogStash::Inputs::Base
         )
       end
 
-      # add the current block to the latest added one variab and go to the next block
-      latest_height_added = current_height
-      current_height += 1
-
-      end # end block check if
+      # go to the next block
+      if current_height < @blockchain.get_block_count()
+	       current_height += 1
+      end
 
       # because the sleep interval can be big, when shutdown happens
       # we want to be able to abort the sleep
@@ -137,9 +134,12 @@ class LogStash::Inputs::Blockchain < LogStash::Inputs::Base
   end # def run
 
   def enqueue(queue, data)
+    if @old_data != data
     event = LogStash::Event.new(data)
     decorate(event)
     queue << event
+    @old_data = data
+    end
   end # def enqueue
 
   def stop
